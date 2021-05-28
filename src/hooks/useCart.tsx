@@ -25,8 +25,7 @@ const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const [cart, setCart] = useState<Product[]>(() => {
-    const storagedCart = localStorage.getItem('cart');
-    console.log('storagedCart: ', storagedCart)
+    const storagedCart = localStorage.getItem('@RocketShoes:cart');
 
     if (storagedCart) {
       return JSON.parse(storagedCart);
@@ -34,33 +33,37 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
     return [];
   });
+  const [products, setProducts] = useState([])
 
   useEffect(() => {
     async function loadProducts() {
       const { data } = await api.get('/products')
-      console.log('data useCart: ', data)
+      setProducts(data)
     }
-
     loadProducts();
   }, []);
 
   const addProduct = async (productId: number) => {
     try {
-      // TODO
-      console.log('addproduct')
-      console.log(productId)
-
-      // setCart([ ...cart, product[productId]])
+      products.map(product => {
+        return setCart([ ...cart, product[productId]])
+      })
     } catch {
       // TODO
+      console.log('error addProduct catch')
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
       // TODO
+      products.map(product => {
+        console.log(productId)
+        return setCart([ ...cart])
+      })
     } catch {
       // TODO
+      console.log('error removeProduct catch')
     }
   };
 
