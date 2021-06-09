@@ -1,5 +1,4 @@
-// localStorage.setItem('@RocketShoes:cart', cart)
-// const storagedCart = localStorage.getItem('@RocketShoes:cart');
+import { S_IFCHR } from 'constants';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
@@ -33,36 +32,46 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
     return [];
   });
-  const [products, setProducts] = useState([])
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [stock, setStock] = useState<Stock[]>([])
 
   useEffect(() => {
     async function loadProducts() {
-      const { data } = await api.get('/products')
+      const { data } = await api.get<Product[]>('/products')
       setProducts(data)
     }
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    async function loadStock() {
+      const { data } = await api.get<Stock[]>('/stock')
+      setStock(data)
+    }
+    loadStock();
+  }, [])
+
   const addProduct = async (productId: number) => {
     try {
       products.map(product => {
-        return setCart([ ...cart, product[productId]])
+        if(product.id === productId) {
+          product.amount = product.amount + 1
+          setCart([ ...cart, product])
+        }
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+        return cart
       })
     } catch {
-      // TODO
       console.log('error addProduct catch')
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
-      products.map(product => {
-        console.log(productId)
-        return setCart([ ...cart])
-      })
+      const newProducts = cart.filter(product => product.id !== productId);
+      setCart(newProducts)
     } catch {
-      // TODO
       console.log('error removeProduct catch')
     }
   };
@@ -72,9 +81,16 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      // TODO
+      cart.map(product => {
+        if(product.id === productId) {
+          product.amount = amount
+          setCart([ ...cart, product])
+        }
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+        return cart
+      })
     } catch {
-      // TODO
+      console.log('updateProductAmount Error')
     }
   };
 
@@ -89,6 +105,5 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
 export function useCart(): CartContextData {
   const context = useContext(CartContext);
-
   return context;
 }
